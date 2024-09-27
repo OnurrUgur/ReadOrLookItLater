@@ -1,6 +1,4 @@
-//
 // AppCoordinator.swift
-
 
 import SwiftUI
 
@@ -13,17 +11,12 @@ enum AppCoordinatorState {
 class AppCoordinator: ObservableObject {
     @Published var state: AppCoordinatorState = .splashScreen
 
-    init() {
-        checkIfOnboardingCompleted()
-    }
-
-    func checkIfOnboardingCompleted() {
-        let hasCompletedOnboarding = UserDefaults.standard
-            .bool(forKey: "hasCompletedOnboarding")
+    func proceedAfterSplash() {
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         if hasCompletedOnboarding {
-            state = .mainContent
+            navigate(to: .mainContent)
         } else {
-            state = .onboarding
+            navigate(to: .onboarding)
         }
     }
 
@@ -35,6 +28,6 @@ class AppCoordinator: ObservableObject {
 
     func completeOnboarding() {
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-        navigate(to: .mainContent)
+        proceedAfterSplash()
     }
 }

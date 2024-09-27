@@ -31,16 +31,16 @@ struct SplashScreenView: View {
         }
         .opacity(opacity)
         .onAppear {
-            withAnimation(.easeInOut(duration: 1.0)) {
+            withAnimation(.easeInOut(duration: 1.5)) {
                 scale = CGSize(width: 1.8, height: 1.8)
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                withAnimation(.easeIn(duration: 0.35)) {
+                withAnimation(.easeIn(duration: 1.0)) {
                     scale = CGSize(width: 50, height: 50)
                     opacity = 0.0
                     // UserDefaults kontrolü ile duruma göre yönlendirme yapılıyor
-                    coordinator.checkIfOnboardingCompleted()
+                    coordinator.proceedAfterSplash()
                 }
             }
         }

@@ -8,10 +8,18 @@
 
 import Foundation
 
-struct ContentItem: Identifiable, Codable {
-    var id: UUID
-    var title: String
-    var url: String
-    var category: String
-    var dateAdded: Date
+public struct ContentItem: Identifiable, Codable {
+    public var id: UUID
+    public var title: String
+    public var url: String
+    public var category: String
+    public var dateAdded: Date
+
+    public init(id: UUID, title: String, url: String, category: String, dateAdded: Date) {
+        self.id = id
+        self.title = title
+        self.url = url
+        self.category = category
+        self.dateAdded = dateAdded
+    }
 }

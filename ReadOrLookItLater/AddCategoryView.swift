@@ -5,15 +5,13 @@
 //  Created by Onur Uğur on 27.09.2024.
 //
 
-// AddCategoryView.swift
-// ReadOrLookItLater
-
 import SwiftUI
 
 struct AddCategoryView: View {
     @Environment(\.presentationMode) var presentationMode
     @Binding var categories: [String]
     @State private var newCategory: String = ""
+    let defaults = UserDefaults(suiteName: "group.com.onur.ugur.app.share")
 
     var body: some View {
         NavigationView {
@@ -36,7 +34,7 @@ struct AddCategoryView: View {
     func addCategory() {
         if !newCategory.isEmpty {
             categories.append(newCategory)
-            UserDefaults.standard.set(categories, forKey: "categories")
+            defaults?.set(categories, forKey: "categories")
             presentationMode.wrappedValue.dismiss()
         }
     }

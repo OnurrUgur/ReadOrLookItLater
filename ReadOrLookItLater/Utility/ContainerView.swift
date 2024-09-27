@@ -8,9 +8,8 @@
 import SwiftUI
 
 struct ContainerView: View {
-    
     @StateObject private var coordinator = AppCoordinator()
-    
+
     var body: some View {
         switch coordinator.state {
         case .splashScreen:
@@ -22,4 +21,3 @@ struct ContainerView: View {
         }
     }
 }
-
