@@ -3,7 +3,7 @@
 //  ReadOrLookItLater
 //
 //  Created by Onur Uğur on 27.09.2024.
-//
+
 
 import SwiftUI
 import MobileCoreServices
@@ -20,16 +20,49 @@ struct ShareExtensionView: View {
         NavigationView {
             Form {
                 Section(header: Text("Title").font(.headline)) {
-                    TextField("Enter title", text: $viewModel.sharedTitle)
-                        .disableAutocorrection(true)
+                    HStack {
+                        Image(systemName: "textformat")
+                            .foregroundColor(.gray)
+                        TextField("Enter title", text: $viewModel.sharedTitle)
+                            .disableAutocorrection(true)
+                    }
                 }
+
                 Section(header: Text("Category").font(.headline)) {
-                    Picker("Select Category", selection: $viewModel.selectedCategory) {
-                        ForEach(viewModel.categories, id: \.self) { category in
-                            Text(category).tag(category)
+                    HStack {
+                        Image(systemName: "folder")
+                            .foregroundColor(.gray)
+                        Picker("Select Category", selection: $viewModel.selectedCategory) {
+                            ForEach(viewModel.categories, id: \.self) { category in
+                                Text(category).tag(category)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+                }
+
+                Section(header: Text("Note").font(.headline)) {
+                    HStack {
+                        Image(systemName: "pencil")
+                            .foregroundColor(.gray)
+                        TextField("Add a note", text: $viewModel.note)
+                            .disableAutocorrection(false)
+                    }
+                }
+
+                if let thumbnailImage = viewModel.thumbnailImage {
+                    Section(header: Text("Thumbnail").font(.headline)) {
+                        HStack {
+                            Spacer()
+                            Image(uiImage: thumbnailImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 150)
+                                .cornerRadius(8)
+                                .shadow(radius: 5)
+                            Spacer()
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
                 }
             }
             .navigationBarTitle("Add to ReadLater", displayMode: .inline)

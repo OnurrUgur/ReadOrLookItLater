@@ -33,9 +33,14 @@ class DataManager: ObservableObject {
                 let items = try decoder.decode([ContentItem].self, from: data)
                 DispatchQueue.main.async {
                     self.contentItems = items
+                    print("Items loaded successfully. Total items: \(self.contentItems.count)")
                 }
             } catch {
                 print("Failed to load items: \(error)")
+                DispatchQueue.main.async {
+                    self.contentItems = []
+                    self.saveItems()
+                }
             }
         }
     }
@@ -48,6 +53,7 @@ class DataManager: ObservableObject {
             do {
                 let data = try encoder.encode(self.contentItems)
                 try data.write(to: url)
+                print("Items saved successfully. Total items: \(self.contentItems.count)")
             } catch {
                 print("Failed to save items: \(error)")
             }
@@ -58,6 +64,7 @@ class DataManager: ObservableObject {
         DispatchQueue.main.async {
             self.contentItems.insert(item, at: 0)
             self.saveItems()
+            print("Item added. Total items: \(self.contentItems.count)")
         }
     }
 
@@ -67,6 +74,7 @@ class DataManager: ObservableObject {
                 self.contentItems.remove(at: index)
             }
             self.saveItems()
+            print("Items deleted. Total items: \(self.contentItems.count)")
         }
     }
 }

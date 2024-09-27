@@ -3,7 +3,6 @@
 //  ReadOrLookItLater
 //
 //  Created by Onur Uğur on 27.09.2024.
-//
 
 import SwiftUI
 
@@ -21,6 +20,7 @@ struct ContentView: View {
                 Picker("Kategori", selection: $selectedCategory) {
                     ForEach(categories, id: \.self) { category in
                         Text(category)
+                            .tag(category)
                     }
                 }
                 .pickerStyle(SegmentedPickerStyle())
@@ -29,7 +29,38 @@ struct ContentView: View {
                 List {
                     ForEach(filteredItems) { item in
                         NavigationLink(destination: DetailView(item: item)) {
-                            Text(item.title)
+                            HStack(alignment: .top, spacing: 10) {
+                                if let thumbnailData = item.thumbnailData, let image = UIImage(data: thumbnailData) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 60, height: 60)
+                                        .cornerRadius(8)
+                                        .clipped()
+                                } else {
+                                    Image(systemName: "photo")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 60, height: 60)
+                                        .foregroundColor(.gray)
+                                        .opacity(0.5)
+                                }
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(item.title)
+                                        .font(.headline)
+                                        .lineLimit(2)
+                                    if let note = item.note, !note.isEmpty {
+                                        Text(note)
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                    Text("Eklendi: \(formattedDate(item.dateAdded))")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .padding(.vertical, 5)
                         }
                     }
                     .onDelete(perform: deleteItems)
@@ -39,7 +70,11 @@ struct ContentView: View {
                 Button(action: {
                     showingAddCategory = true
                 }) {
-                    Text("Kategori Ekle")
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text("Kategori Ekle")
+                    }
+                    .font(.headline)
                 }
                 .padding()
                 .sheet(isPresented: $showingAddCategory) {
@@ -74,5 +109,11 @@ struct ContentView: View {
             categories = ["Tümü", "Okunacaklar", "İzlenecekler", "Favoriler"]
             defaults?.set(categories, forKey: "categories")
         }
+    }
+
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: date)
     }
 }

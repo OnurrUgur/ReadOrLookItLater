@@ -5,17 +5,17 @@
 //  Created by Onur Uğur on 27.09.2024.
 //
 
-// ShareExtensionViewModel.swift
-// ReadLaterShareExtension
-
 import SwiftUI
 import MobileCoreServices
+import LinkPresentation
 
 class ShareExtensionViewModel: ObservableObject {
     @Published var sharedTitle: String = ""
     @Published var sharedURL: String = ""
     @Published var selectedCategory: String = ""
     @Published var categories: [String] = []
+    @Published var note: String = ""
+    @Published var thumbnailImage: UIImage?
 
     private let appGroupID = "group.com.onur.ugur.app.share"
     private let fileName = "ContentItems.json"
@@ -50,6 +50,7 @@ class ShareExtensionViewModel: ObservableObject {
                                 DispatchQueue.main.async {
                                     self.sharedURL = url.absoluteString
                                     self.sharedTitle = url.absoluteString
+                                    self.loadThumbnail(from: url)
                                 }
                             }
                         }
@@ -70,24 +71,66 @@ class ShareExtensionViewModel: ObservableObject {
         }
     }
 
+    func loadThumbnail(from url: URL) {
+        let provider = LPMetadataProvider()
+        provider.startFetchingMetadata(for: url) { [weak self] metadata, error in
+            if let error = error {
+                print("Failed to fetch metadata: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self?.thumbnailImage = UIImage(systemName: "photo")
+                }
+                return
+            }
+
+            if let imageProvider = metadata?.imageProvider {
+                imageProvider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
+                    if let image = image as? UIImage {
+                        DispatchQueue.main.async {
+                            self?.thumbnailImage = image
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            self?.thumbnailImage = UIImage(systemName: "photo")
+                        }
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self?.thumbnailImage = UIImage(systemName: "photo")
+                }
+            }
+        }
+    }
+
     func cancel() {
         extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
     }
 
     func post() {
-        saveItem()
-        extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
-    }
+        // Convert the thumbnail image to data
+        var thumbnailData: Data? = nil
+        if let image = thumbnailImage {
+            thumbnailData = image.jpegData(compressionQuality: 0.8)
+        }
 
-    private func saveItem() {
+        // Create the ContentItem
         let newItem = ContentItem(
             id: UUID(),
             title: self.sharedTitle,
             url: self.sharedURL,
             category: self.selectedCategory,
-            dateAdded: Date()
+            dateAdded: Date(),
+            note: self.note,
+            thumbnailData: thumbnailData
         )
 
+        // Save the item
+        saveItem(newItem)
+
+        extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
+    }
+
+    private func saveItem(_ newItem: ContentItem) {
         guard let containerURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)
         else {
