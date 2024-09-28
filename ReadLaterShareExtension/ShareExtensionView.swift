@@ -50,20 +50,6 @@ struct ShareExtensionView: View {
                     }
                 }
 
-                if let thumbnailImage = viewModel.thumbnailImage {
-                    Section(header: Text("Thumbnail").font(.headline)) {
-                        HStack {
-                            Spacer()
-                            Image(uiImage: thumbnailImage)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 150)
-                                .cornerRadius(8)
-                                .shadow(radius: 5)
-                            Spacer()
-                        }
-                    }
-                }
             }
             .navigationBarTitle("Add to ReadLater", displayMode: .inline)
             .navigationBarItems(

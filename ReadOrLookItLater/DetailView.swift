@@ -13,8 +13,18 @@ struct DetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+
                 if let thumbnailData = item.thumbnailData, let image = UIImage(data: thumbnailData) {
                     Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 200)
+                        .clipped()
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .padding(.horizontal)
+                } else {
+                    Image("thumbnail_image")
                         .resizable()
                         .scaledToFill()
                         .frame(height: 200)
@@ -71,21 +81,6 @@ struct DetailView: View {
                     .padding(.horizontal)
                 }
 
-                Button(action: shareItem) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "square.and.arrow.up")
-                        Text("Share")
-                            .fontWeight(.semibold)
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.secondary.opacity(0.2))
-                    .foregroundColor(.primary)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                }
-
                 Spacer()
             }
             .padding(.top)
@@ -97,16 +92,6 @@ struct DetailView: View {
     func openURL() {
         if let url = URL(string: item.url) {
             UIApplication.shared.open(url)
-        }
-    }
-
-    func shareItem() {
-        guard let url = URL(string: item.url) else { return }
-        let activityController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(activityController, animated: true, completion: nil)
         }
     }
 

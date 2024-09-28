@@ -1,8 +1,7 @@
+// ContentView.swift
+// ReadOrLookItLater
 //
-//  ContentView.swift
-//  ReadOrLookItLater
-//
-//  Created by Onur Uğur on 27.09.2024.
+// Created by Onur Uğur on 27.09.2024.
 
 import SwiftUI
 
@@ -17,14 +16,25 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                Picker("Kategori", selection: $selectedCategory) {
-                    ForEach(categories, id: \.self) { category in
-                        Text(category)
-                            .tag(category)
+                // Horizontal Scrollable Category Bar
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(categories, id: \.self) { category in
+                            Button(action: {
+                                selectedCategory = category
+                            }) {
+                                Text(category)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 16)
+                                    .background(selectedCategory == category ? Color.blue : Color.gray.opacity(0.2))
+                                    .foregroundColor(selectedCategory == category ? .white : .primary)
+                                    .cornerRadius(20)
+                            }
+                        }
                     }
+                    .padding(.horizontal)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding()
+                .padding(.vertical, 5)
 
                 List {
                     ForEach(filteredItems) { item in
@@ -38,12 +48,12 @@ struct ContentView: View {
                                         .cornerRadius(8)
                                         .clipped()
                                 } else {
-                                    Image(systemName: "photo")
+                                    Image("thumbnail_image")
                                         .resizable()
-                                        .scaledToFit()
+                                        .scaledToFill()
                                         .frame(width: 60, height: 60)
-                                        .foregroundColor(.gray)
-                                        .opacity(0.5)
+                                        .cornerRadius(8)
+                                        .clipped()
                                 }
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(item.title)
@@ -66,6 +76,9 @@ struct ContentView: View {
                     .onDelete(perform: deleteItems)
                 }
                 .listStyle(PlainListStyle())
+                .refreshable {
+                    await refreshContent()
+                }
 
                 Button(action: {
                     showingAddCategory = true
@@ -115,5 +128,10 @@ struct ContentView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         return formatter.string(from: date)
+    }
+
+    // New function to refresh content
+    private func refreshContent() async {
+        await dataManager.loadItemsAsync()
     }
 }

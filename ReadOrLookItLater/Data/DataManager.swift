@@ -5,7 +5,7 @@ import Foundation
 
 class DataManager: ObservableObject {
     static let shared = DataManager()
-    let appGroupID = "group.com.onur.ugur.app.share" // Your App Group ID
+    let appGroupID = "group.com.onur.ugur.app.share"
     let fileName = "ContentItems.json"
 
     @Published var contentItems: [ContentItem] = []
@@ -40,6 +40,39 @@ class DataManager: ObservableObject {
                 DispatchQueue.main.async {
                     self.contentItems = []
                     self.saveItems()
+                }
+            }
+        }
+    }
+
+    // New asynchronous function for pull-to-refresh
+    func loadItemsAsync() async {
+        await withCheckedContinuation { continuation in
+            loadItems {
+                continuation.resume()
+            }
+        }
+    }
+
+    private func loadItems(completion: @escaping () -> Void) {
+        DispatchQueue.global(qos: .background).async {
+            let url = self.fileURL
+            do {
+                let data = try Data(contentsOf: url)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                let items = try decoder.decode([ContentItem].self, from: data)
+                DispatchQueue.main.async {
+                    self.contentItems = items
+                    print("Items loaded successfully. Total items: \(self.contentItems.count)")
+                    completion()
+                }
+            } catch {
+                print("Failed to load items: \(error)")
+                DispatchQueue.main.async {
+                    self.contentItems = []
+                    self.saveItems()
+                    completion()
                 }
             }
         }

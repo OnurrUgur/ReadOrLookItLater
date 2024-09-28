@@ -70,14 +70,14 @@ class ShareExtensionViewModel: ObservableObject {
             }
         }
     }
-
+    
     func loadThumbnail(from url: URL) {
         let provider = LPMetadataProvider()
         provider.startFetchingMetadata(for: url) { [weak self] metadata, error in
             if let error = error {
                 print("Failed to fetch metadata: \(error.localizedDescription)")
                 DispatchQueue.main.async {
-                    self?.thumbnailImage = UIImage(systemName: "photo")
+                    self?.thumbnailImage = nil // Burada nil olarak ayarlıyoruz
                 }
                 return
             }
@@ -90,17 +90,18 @@ class ShareExtensionViewModel: ObservableObject {
                         }
                     } else {
                         DispatchQueue.main.async {
-                            self?.thumbnailImage = UIImage(systemName: "photo")
+                            self?.thumbnailImage = nil // Burada da nil
                         }
                     }
                 }
             } else {
                 DispatchQueue.main.async {
-                    self?.thumbnailImage = UIImage(systemName: "photo")
+                    self?.thumbnailImage = nil // Burada da nil
                 }
             }
         }
     }
+
 
     func cancel() {
         extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
