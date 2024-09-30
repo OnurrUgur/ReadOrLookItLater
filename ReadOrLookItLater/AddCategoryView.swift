@@ -1,8 +1,7 @@
+// AddCategoryView.swift
+// ReadOrLookItLater
 //
-//  AddCategoryView.swift
-//  ReadOrLookItLater
-//
-//  Created by Onur Uğur on 27.09.2024.
+// Created by Onur Uğur on 27.09.2024.
 //
 
 import SwiftUI
@@ -25,9 +24,13 @@ struct AddCategoryView: View {
                 }
             }
             .navigationTitle("Kategori Ekle")
-            .navigationBarItems(trailing: Button("Kapat") {
-                presentationMode.wrappedValue.dismiss()
-            })
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Kapat") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
         }
     }
 

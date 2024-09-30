@@ -5,6 +5,14 @@
 
 import SwiftUI
 
+#if canImport(UIKit)
+import UIKit
+#endif
+
+#if canImport(AppKit)
+import AppKit
+#endif
+
 struct ContentView: View {
     @ObservedObject var dataManager = DataManager.shared
     let defaults = UserDefaults(suiteName: "group.com.onur.ugur.app.share")
@@ -40,21 +48,34 @@ struct ContentView: View {
                     ForEach(filteredItems) { item in
                         NavigationLink(destination: DetailView(item: item)) {
                             HStack(alignment: .top, spacing: 10) {
-                                if let thumbnailData = item.thumbnailData, let image = UIImage(data: thumbnailData) {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 60, height: 60)
-                                        .cornerRadius(8)
-                                        .clipped()
+                                if let thumbnailData = item.thumbnailData {
+                                    #if os(iOS)
+                                    if let image = UIImage(data: thumbnailData) {
+                                        Image(uiImage: image)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 60, height: 60)
+                                            .cornerRadius(8)
+                                            .clipped()
+                                    } else {
+                                        defaultThumbnailImage
+                                    }
+                                    #elseif os(macOS)
+                                    if let image = NSImage(data: thumbnailData) {
+                                        Image(nsImage: image)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 60, height: 60)
+                                            .cornerRadius(8)
+                                            .clipped()
+                                    } else {
+                                        defaultThumbnailImage
+                                    }
+                                    #endif
                                 } else {
-                                    Image("thumbnail_image")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 60, height: 60)
-                                        .cornerRadius(8)
-                                        .clipped()
+                                    defaultThumbnailImage
                                 }
+
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(item.title)
                                         .font(.headline)
@@ -133,5 +154,15 @@ struct ContentView: View {
     // New function to refresh content
     private func refreshContent() async {
         await dataManager.loadItemsAsync()
+    }
+
+    // Helper view for default thumbnail image
+    var defaultThumbnailImage: some View {
+        Image("thumbnail_image")
+            .resizable()
+            .scaledToFill()
+            .frame(width: 60, height: 60)
+            .cornerRadius(8)
+            .clipped()
     }
 }

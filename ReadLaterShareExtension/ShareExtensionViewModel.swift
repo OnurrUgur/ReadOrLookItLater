@@ -1,4 +1,3 @@
-//
 //  ShareExtensionViewModel.swift
 //  ReadOrLookItLater
 //
@@ -8,6 +7,7 @@
 import SwiftUI
 import MobileCoreServices
 import LinkPresentation
+import UniformTypeIdentifiers
 
 class ShareExtensionViewModel: ObservableObject {
     @Published var sharedTitle: String = ""
@@ -44,32 +44,137 @@ class ShareExtensionViewModel: ObservableObject {
         if let item = extensionContext.inputItems.first as? NSExtensionItem {
             if let attachments = item.attachments {
                 for attachment in attachments {
+                    // Log all registered type identifiers
+                    for typeIdentifier in attachment.registeredTypeIdentifiers {
+                        print("Attachment type: \(typeIdentifier)")
+                    }
+
+                    // Handle kUTTypeURL (public.url)
                     if attachment.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
+                        print("Found kUTTypeURL")
                         attachment.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (data, error) in
                             if let url = data as? URL {
+                                print("Loaded URL: \(url.absoluteString)")
                                 DispatchQueue.main.async {
                                     self.sharedURL = url.absoluteString
                                     self.sharedTitle = url.absoluteString
                                     self.loadThumbnail(from: url)
                                 }
-                            }
-                        }
-                        return
-                    } else if attachment.hasItemConformingToTypeIdentifier(kUTTypeText as String) {
-                        attachment.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (data, error) in
-                            if let text = data as? String {
-                                DispatchQueue.main.async {
-                                    self.sharedURL = ""
-                                    self.sharedTitle = text
-                                }
+                            } else {
+                                print("Failed to load URL")
                             }
                         }
                         return
                     }
+
+                    // Handle kUTTypeText (public.text)
+                    else if attachment.hasItemConformingToTypeIdentifier(kUTTypeText as String) {
+                        print("Found kUTTypeText")
+                        attachment.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (data, error) in
+                            if let text = data as? String {
+                                print("Loaded text: \(text)")
+                                DispatchQueue.main.async {
+                                    self.sharedURL = ""
+                                    self.sharedTitle = text
+                                }
+                            } else {
+                                print("Failed to load text")
+                            }
+                        }
+                        return
+                    }
+
+                    // Handle kUTTypePropertyList (public.property-list)
+                    else if attachment.hasItemConformingToTypeIdentifier(kUTTypePropertyList as String) {
+                        print("Found kUTTypePropertyList")
+                        attachment.loadItem(forTypeIdentifier: kUTTypePropertyList as String, options: nil) { (item, error) in
+                            if let dictionary = item as? NSDictionary {
+                                print("Loaded dictionary: \(dictionary)")
+                                // Extract the URL from the property list
+                                if let results = dictionary[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary,
+                                   let urlString = results["URL"] as? String,
+                                   let url = URL(string: urlString) {
+                                    print("Extracted URL from property list: \(url.absoluteString)")
+                                    DispatchQueue.main.async {
+                                        self.sharedURL = url.absoluteString
+                                        self.sharedTitle = url.absoluteString
+                                        self.loadThumbnail(from: url)
+                                    }
+                                } else {
+                                    print("Failed to extract URL from property list")
+                                }
+                            } else {
+                                print("Failed to load property list")
+                            }
+                        }
+                        return
+                    }
+
+                    // Handle public.plain-text
+                    else if attachment.hasItemConformingToTypeIdentifier("public.plain-text") {
+                        print("Found public.plain-text")
+                        attachment.loadItem(forTypeIdentifier: "public.plain-text", options: nil) { (data, error) in
+                            if let text = data as? String,
+                               let url = URL(string: text) {
+                                print("Loaded text as URL: \(url.absoluteString)")
+                                DispatchQueue.main.async {
+                                    self.sharedURL = url.absoluteString
+                                    self.sharedTitle = url.absoluteString
+                                    self.loadThumbnail(from: url)
+                                }
+                            } else {
+                                print("Failed to load text as URL")
+                            }
+                        }
+                        return
+                    }
+
+                    // Attempt to extract URL from attributedContentText
+                    else if let attributedContentText = item.attributedContentText {
+                        let text = attributedContentText.string
+                        print("Found attributedContentText: \(text)")
+                        if let url = URL(string: text) {
+                            print("Extracted URL from attributedContentText: \(url.absoluteString)")
+                            DispatchQueue.main.async {
+                                self.sharedURL = url.absoluteString
+                                self.sharedTitle = url.absoluteString
+                                self.loadThumbnail(from: url)
+                            }
+                        } else {
+                            print("Failed to extract URL from attributedContentText")
+                            // Handle as plain text if not a valid URL
+                            DispatchQueue.main.async {
+                                self.sharedURL = ""
+                                self.sharedTitle = text
+                            }
+                        }
+                        return
+                    }
+
+                    else {
+                        print("No matching type found. Attempting to handle as text.")
+                        // Fallback to loading as text
+                        attachment.loadItem(forTypeIdentifier: String(kUTTypeText), options: nil) { (data, error) in
+                            if let text = data as? String {
+                                print("Loaded text: \(text)")
+                                DispatchQueue.main.async {
+                                    self.sharedURL = ""
+                                    self.sharedTitle = text
+                                }
+                            } else {
+                                print("Failed to load item as text")
+                            }
+                        }
+                    }
                 }
+            } else {
+                print("No attachments found in NSExtensionItem")
             }
+        } else {
+            print("No input items found in extension context")
         }
     }
+
     
     func loadThumbnail(from url: URL) {
         let provider = LPMetadataProvider()
@@ -165,3 +270,4 @@ class ShareExtensionViewModel: ObservableObject {
         }
     }
 }
+

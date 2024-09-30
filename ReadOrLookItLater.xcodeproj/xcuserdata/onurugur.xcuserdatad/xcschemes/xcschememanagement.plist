@@ -7,12 +7,25 @@
 		<key>ReadLaterShareExtension.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 		<key>ReadOrLookItLater.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>B76A6A242CA6C6410021E942</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B76A6A982CA6E34D0021E942</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
